@@ -17,10 +17,6 @@ import matplotlib.pyplot as plt
 # housing.hist(bins = 50, figsize =(20,15))
 # plt.show()
 
-from sklearn.model_selection import train_test_split
-train_set, test_set = train_test_split(housing, test_size= 0.2, random_state= 1)
-
-
 import numpy as np
 
 '''
@@ -45,7 +41,7 @@ for set_ in (strat_train_set, strat_test_set):
     set_.drop("income_cat", axis = 1, inplace = True)
 
 '''
-Exploratory Data Analysis
+*********** Exploratory Data Analysis ******************
 '''
 
 housing = strat_train_set.copy() #Copy of th training set to perform EDA
@@ -68,8 +64,50 @@ attributes = ["median_house_value", "median_income", "total_rooms", "housing_med
 '''We can see from this plot that the data is capped at 500,000.
 There are less obvious patters in similar fashion at various other points
 We need to remove the districts which have such price cap on them'''
-housing.plot(kind = "scatter", x = "median_income", y = "median_house_value", alpha = 0.1)
-plt.show()
+
+# housing.plot(kind = "scatter", x = "median_income", y = "median_house_value", alpha = 0.1)
+# plt.show()
+
+
+#A bit of feature engineering to combine some relevant attributes
+housing["rooms_per_household"] = housing["total_rooms"] / housing["households"]
+housing["bedrooms_per_room"] = housing["total_bedrooms"] / housing["total_rooms"]
+housing["population_per_household"] = housing["population"] / housing["households"]
+
+corr_matrix = housing.corr()
+print("\n", "After Feature Engineering")
+print(corr_matrix["median_house_value"].sort_values(ascending= False))
+
+'''
+****************** Data Preprocessing *******************
+'''
+
+housing = strat_train_set.drop("median_house_value", axis = 1)
+house_labels = strat_train_set["median_house_value"].copy()
+
+#replacig the missing values in total_bedrooms attribute
+from sklearn.impute import SimpleImputer    #class to replace the missing values in attributes
+imputer = SimpleImputer(strategy= "median")
+
+housing_num = housing.drop("ocean_proximity", axis  = 1)       #median can only computed on numerical attributes
+imputer.fit(housing_num)
+
+#medians of all the attributes will be stored in the imputer's statistics_ instance variable
+#print(imputer.statistics_)
+
+#We just have just fit the imputer to the dataset, but have not transformed. We shall do it now
+X = imputer.transform(housing_num)     #this is a numpy array containing tranformed features
+
+#We can transform the above array to a dataframe using the follwing code
+housing_transformed = pd.DataFrame(X, columns= housing_num.columns, index= housing_num.index)
+
+
+
+
+
+
+
+
 
 
 
