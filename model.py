@@ -108,16 +108,33 @@ print(housing_cat.value_counts()) #this shows that there are 5 categories
 
 from sklearn.preprocessing import OneHotEncoder
 cat_encoder = OneHotEncoder()
-housing_cat_1hot = cat_encoder.fit_transform(housing_cat)      '''this creates a Scipy Sparse Matrix which stores only the
-                                                                  the non-zero elements in the memory instead of numpy array
-                                                                  which stores even zeroes
-                                                                '''
 #housing_cat_1hot.toarray()   #to convert to numpy array
 
+from sklearn.base import BaseEstimator, TransformerMixin
 
+rooms_ix, bedrooms_ix, population_ix, households_ix = 3, 4, 5, 6
 
+class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
+    '''
+    Custom Transformer class to add the computed attributes rooms_per_household, bedrooms_per_room_,
+    population_per_household. Here we added add_bedrooms_per_room as a hyperparameter, so that we can see
+    if it really helps the ML algorithm or not
+    '''
+    def __init__(self, add_bedrooms_per_room = True):
+        self.add_bedrooms_per_room = add_bedrooms_per_room
+    def fit(self, X, y= None):
+        return self
+    def transform(self,X, y= None):
+        rooms_per_household = X[:, rooms_ix] / X[:, households_ix]
+        population_per_household = X[:, population_ix] / X[:, households_ix]
+        if self.add_bedrooms_per_room:
+            bedrooms_per_room = X[:, bedrooms_ix] / X[:, rooms_ix]
+            return np.c_[X, rooms_per_household, population_per_household, bedrooms_per_room]
+        else:
+            return np.c_[X, rooms_per_household, population_per_household]
 
-
+attr_adder = CombinedAttributesAdder(add_bedrooms_per_room= False)
+housing_extra_attribs = attr_adder.transform(housing.values)
 
 
 
