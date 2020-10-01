@@ -102,6 +102,20 @@ X = imputer.transform(housing_num)     #this is a numpy array containing tranfor
 housing_transformed = pd.DataFrame(X, columns= housing_num.columns, index= housing_num.index)
 
 
+#Handling text and categorical attributes
+housing_cat = housing["ocean_proximity"]
+print(housing_cat.value_counts()) #this shows that there are 5 categories
+
+from sklearn.preprocessing import OneHotEncoder
+cat_encoder = OneHotEncoder()
+housing_cat_1hot = cat_encoder.fit_transform(housing_cat)      '''this creates a Scipy Sparse Matrix which stores only the
+                                                                  the non-zero elements in the memory instead of numpy array
+                                                                  which stores even zeroes
+                                                                '''
+#housing_cat_1hot.toarray()   #to convert to numpy array
+
+
+
 
 
 
