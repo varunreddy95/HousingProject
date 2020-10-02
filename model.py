@@ -1,3 +1,17 @@
+'''
+********************************
+Project: Predicting Median House Prices for investment analysis of Real Estate Company (Hypothetical Situation)
+
+Developed By: Varun Reddy
+Project Start-Date: 28-09-2020
+
+
+Reference Material: Hands-On Machine Learning with Scikit-learn, Keras & Tensorflow
+********************************
+'''
+
+
+
 import pandas as pd
 pd.set_option('display.max_columns', 100)
 
