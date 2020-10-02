@@ -136,6 +136,22 @@ class CombinedAttributesAdder(BaseEstimator, TransformerMixin):
 attr_adder = CombinedAttributesAdder(add_bedrooms_per_room= False)
 housing_extra_attribs = attr_adder.transform(housing.values)
 
+'''
+************** Transformation Pipelines ******************
+'''
+
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+
+num_pipeline = Pipeline([
+    ('imputer', SimpleImputer(strategy= "median")),
+    ('attr_adder', CombinedAttributesAdder()),
+    ('std_scaler', StandardScaler())
+])
+
+housing_num_tr = num_pipeline.fit_transform(housing_num)
+
+
 
 
 
