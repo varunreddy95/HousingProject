@@ -24,6 +24,7 @@ def load_housing_data(x = url):
 housing = load_housing_data()
 print(housing.head())
 print(housing.info())
+print(housing.describe())
 
 print(housing["ocean_proximity"].value_counts()) #categorial feature with 5 categories
 
@@ -189,17 +190,70 @@ lin_reg = LinearRegression()
 lin_reg.fit(housing_prepared, housing_labels)
 
 #testing if the model works
-some_data = housing.iloc[:5]                    #Taking only first five instances
-some_labels = housing_labels.iloc[:5]
-some_data_prepared = full_pipeline.transform(some_data)
-print("Predictions: ", lin_reg.predict(some_data_prepared))
-print("Labels: ", list(some_labels))
+# some_data = housing.iloc[:5]                    #Taking only first five instances
+# some_labels = housing_labels.iloc[:5]
+# some_data_prepared = full_pipeline.transform(some_data)
+# print("Predictions: ", lin_reg.predict(some_data_prepared))
+# print("Labels: ", list(some_labels))
 
+from sklearn.metrics import mean_squared_error
+housing_predictions = lin_reg.predict(housing_prepared)
+lin_mse = mean_squared_error(housing_labels, housing_predictions)
+lin_mse = np.sqrt(lin_mse)
+print("\nLinear Regression Model's Generalization Error: ", lin_mse)
 
+'''
+An error of approx. 68628.19 is not so satisfying considering the most district's median_housing_value ranging between
+$120,000 and $265,000. So typical prediction error of 68628.19 is not good. This means that the model is clearly
+underfitting the data. So we have 3 options
+1. Use more powerful model
+2. Feed algorithm with better features
+3. Reduce the constraints on the model (Minimize the learning rate hyperparameter)
 
+This Model is not regularized, hence option 3 is rules out.
+Lets try first more powerful Model
+'''
 
+from sklearn.tree import DecisionTreeRegressor
 
+tree_reg = DecisionTreeRegressor()
+tree_reg.fit(housing_prepared, housing_labels)
+housing_predictions = tree_reg.predict(housing_prepared)
+tree_mse = mean_squared_error(housing_labels, housing_predictions)
+tree_rmse = np.sqrt(tree_mse)
+print("\nDecision Tree Regression Model's Generalization Error: ", tree_rmse)
 
+''' 
+A zero generalization error means, the data is much more likely to be overfitting by the model. We test this by method of 
+cross-validation 
+'''
+
+from sklearn.model_selection import cross_val_score
+scores = cross_val_score(tree_reg, housing_prepared, housing_labels, scoring = "neg_mean_squared_error", cv = 10)
+tree_mse_scores = np.sqrt(-scores)
+
+print("\n")
+
+def display_scores(scores):
+    print("Scores: ", scores)
+    print("Mean: ", scores.mean())
+    print("Standard Deviation: ", scores.std())
+
+display_scores(tree_mse_scores) #Decision Tree Model seems to be working worse than linear Regression Model
+
+#We shall now try Random Forest Regression  Model
+from sklearn.ensemble import RandomForestRegressor
+forest_reg = RandomForestRegressor()
+forest_reg.fit(housing_prepared, housing_labels)
+housing_predictions = forest_reg.predict(housing_prepared)
+
+forest_mse = mean_squared_error(housing_labels, housing_predictions)
+forest_mse = np.sqrt(forest_mse)
+print("\nRandom Forest Regression Model error: ", forest_mse)
+print("\n")
+forest_scores = cross_val_score(forest_reg, housing_prepared, housing_labels, scoring = "neg_mean_squared_error", cv = 10)
+forest_rmse_scores = np.sqrt(-forest_scores)
+display_scores(forest_rmse_scores)
 
 
 
