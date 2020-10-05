@@ -269,8 +269,46 @@ forest_reg = RandomForestRegressor()
 grid_search = GridSearchCV(forest_reg, param_grid, cv = 5, scoring= 'neg_mean_squared_error', return_train_score= True)
 grid_search.fit(housing_prepared, housing_labels)
 
+# grid_search.best_params_    #prints out the best combination of hyperparameters
+# grid_search.best_estimator_ #prints out the best estimator
+# grid_search.cv_results_     #Dictionary object of mean_test_score and params
+
+feature_importances  = grid_search.best_estimator_.feature_importances_
+extra_attribs = ["rooms_per_household", "population_per_household", "bedrooms_per_room"]
+cat_encoder = full_pipeline.named_transformers_["cat"]
+cat_one_hot_attribs = list(cat_encoder.categories_[0])
+attributes = num_attribs + extra_attribs + cat_one_hot_attribs
+print("\n")
+print(sorted(zip(feature_importances, attributes), reverse= True))
 
 
+'''
+*************** Model Evaluation on Test Set *********************
+'''
+
+final_model = grid_search.best_estimator_
+X_test = strat_test_set.drop("median_house_value", axis= 1)
+y_test = strat_test_set["median_house_value"].copy()
+X_test_prepared = full_pipeline.transform(X_test)
+final_predictions = final_model.predict(X_test_prepared)
+final_mse = mean_squared_error(y_test, final_predictions)
+final_rmse = np.sqrt(final_mse)
+
+print("\n")
+print("Generalization error on test set: ", final_rmse)
+
+from scipy import stats
+confidence = 0.95
+squared_errors = (final_predictions - y_test) ** 2
+statistical_check = np.sqrt(stats.t.interval(confidence, len(squared_errors)-1, loc=squared_errors.mean(), scale = stats.sem(squared_errors)))
+print("\n")
+print("Generalization after statistical check: ", statistical_check)
 
 
-
+'''
+#
+#
+********************* THE MODEL IS READY TO BE DEPLOYED *********************************
+#
+#
+'''
